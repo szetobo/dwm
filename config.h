@@ -1,5 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
+#include <X11/XF86keysym.h>
+
 /* appearance */
 static const char font[]            = "-*-terminus-medium-r-*-*-16-*-*-*-*-*-*-*";
 static const char normbordercolor[] = "#444444";
@@ -21,8 +23,9 @@ static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 
 static const Rule rules[] = {
 	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            True,        -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       False,       -1 },
+	/* { "Gimp",     NULL,       NULL,       0,            True,        -1 }, */
+	{ "VirtualBox",     NULL,       NULL,       1 << 7,       True,        -1 },
+	{ "Skype",          NULL,       NULL,       1 << 8,       False,       -1 },
 };
 
 /* layout(s) */
@@ -30,7 +33,7 @@ static const float mfact      = 0.55; /* factor of master area size [0.05..0.95]
 static const int nmaster      = 1;    /* number of clients in master area */
 static const Bool resizehints = True; /* True means respect size hints in tiled resizals */
 static const int layoutaxis[] = {
-	1,    /* layout axis: 1 = x, 2 = y; negative values mirror the layout, setting the master area to the right / bottom instead of left / top */
+	-1,   /* layout axis: 1 = x, 2 = y; negative values mirror the layout, setting the master area to the right / bottom instead of left / top */
 	2,    /* master axis: 1 = x (from left to right), 2 = y (from top to bottom), 3 = z (monocle) */
 	2,    /* stack axis:  1 = x (from left to right), 2 = y (from top to bottom), 3 = z (monocle) */
 };
@@ -43,7 +46,7 @@ static const Layout layouts[] = {
 };
 
 /* key definitions */
-#define MODKEY Mod1Mask
+#define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
 	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
@@ -54,26 +57,42 @@ static const Layout layouts[] = {
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *dmenucmd[] = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
-static const char *termcmd[]  = { "uxterm", NULL };
+static const char *dmenucmd[]   = { "dmenu_run", "-fn", font, "-nb", normbgcolor, "-nf", normfgcolor, "-sb", selbgcolor, "-sf", selfgcolor, NULL };
+static const char *logoutcmd[]  = { "/home/gko/bin/dmenu-logout.sh", NULL };
+static const char *termcmd[]    = { "urxvt", NULL };
+static const char *browsercmd[] = { "chromium", NULL };
+static const char *editorcmd[]  = { "gvim", NULL };
+static const char *fmcmd[]      = { "urxvt", "-e", "ranger", NULL };
+static const char *imcmd[]      = { "skype", NULL };
+static const char *volumeup[]   = { "amixer", "-q", "set", "Master", "10%+", "unmute", NULL };
+static const char *volumedown[] = { "amixer", "-q", "set", "Master", "10%-", "unmute", NULL };
+static const char *volumemute[] = { "amixer", "-q", "set", "Master", "toggle", NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
-	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
+	{ MODKEY,                       XK_m,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_t,      spawn,          {.v = termcmd } },
+	{ MODKEY,                       XK_w,      spawn,          {.v = browsercmd } },
+	{ MODKEY,                       XK_e,      spawn,          {.v = editorcmd } },
+	{ MODKEY,                       XK_f,      spawn,          {.v = fmcmd } },
+	{ MODKEY,                       XK_s,      spawn,          {.v = imcmd } },
+	{ MODKEY,                       XK_x,      spawn,          {.v = logoutcmd } },
+	{ 0,         XF86XK_AudioRaiseVolume,      spawn,          {.v = volumeup } },
+	{ 0,         XF86XK_AudioLowerVolume,      spawn,          {.v = volumedown } },
+	{ 0,         XF86XK_AudioMute,             spawn,          {.v = volumemute } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
-	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
-	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
+	/* { MODKEY,                       XK_i,      incnmaster,     {.i = +1 } }, */
+	/* { MODKEY,                       XK_d,      incnmaster,     {.i = -1 } }, */
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY|ShiftMask,             XK_t,      setlayout,      {.v = &layouts[0]} },
+	{ MODKEY|ShiftMask,             XK_f,      setlayout,      {.v = &layouts[1]} },
+	{ MODKEY|ShiftMask,             XK_m,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
@@ -92,12 +111,12 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
-	{ MODKEY|ControlMask,           XK_t,      rotatelayoutaxis, {.i = 0} },    /* 0 = layout axis */
-	{ MODKEY|ControlMask,           XK_Tab,    rotatelayoutaxis, {.i = 1} },    /* 1 = master axis */
-	{ MODKEY|ControlMask|ShiftMask, XK_Tab,    rotatelayoutaxis, {.i = 2} },    /* 2 = stack axis */
-	{ MODKEY|ControlMask,           XK_Return, mirrorlayout,     {0} },
-	{ MODKEY|ControlMask,           XK_h,      shiftmastersplit, {.i = -1} },   /* reduce the number of tiled clients in the master area */
-	{ MODKEY|ControlMask,           XK_l,      shiftmastersplit, {.i = +1} },   /* increase the number of tiled clients in the master area */
+	{ MODKEY|Mod1Mask,              XK_t,      rotatelayoutaxis, {.i = 0} },    /* 0 = layout axis */
+	{ MODKEY|Mod1Mask,              XK_m,      rotatelayoutaxis, {.i = 1} },    /* 1 = master axis */
+	{ MODKEY|Mod1Mask,              XK_s,      rotatelayoutaxis, {.i = 2} },    /* 2 = stack axis */
+	{ MODKEY|Mod1Mask,              XK_Return, mirrorlayout,     {0} },
+	{ MODKEY|Mod1Mask,              XK_i,      shiftmastersplit, {.i = +1} },   /* increase the number of tiled clients in the master area */
+	{ MODKEY|Mod1Mask,              XK_d,      shiftmastersplit, {.i = -1} },   /* reduce the number of tiled clients in the master area */
 };
 
 /* button definitions */
